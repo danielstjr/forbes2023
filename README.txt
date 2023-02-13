@@ -1,23 +1,22 @@
-Hello! This is my submission for the Forbes Take-Home Test for the role of Senior Software Engineer on the Systems Team
+## Hello! This is my submission for the Forbes Take-Home Test for the role of Senior Software Engineer on the Systems Team
 
-STACK DECISION:
+#### STACK DECISION:
 After reviewing the technical requirements of this challenge, I decided to develop this in Go for a few reasons. The
 primary reason being that to do an accurate comparison of closest words to a given word would require the levenshtein
 algorithm, and the comparison itself would be comparable to an array lookup with significantly heavier lift on comparison.
 That combined with the fact that the number of full array lookup comparisons would be equal to the number of items that
 were mispelled, it presented the perfect opportunity to introduce some GO concurrency.
 
-LOCAL DEVELOPMENT STACK:
+#### LOCAL DEVELOPMENT STACK:
 This project was developed on a Golang stack on Windows 10 with Gin as a webserver, the command to run is:
 go run main.go (and any development or production qualifiers you want to add)
 
-OPTIMIZATION THOUGHT:
+#### OPTIMIZATION THOUGHT:
 This project doesn't utilize a database currently but I believe that would be much more efficient with a growing
 dictionary size because there are several databases that include very efficient levenshtein comparisons (there are also
 several in golang, python, and java that would be available on a true production version of this application)
 
-DEPLOYMENT PLAN:
-
+#### DEPLOYMENT PLAN:
 With Golang being created by Google and used by a lot of the development community today, the deployment of this
 webserver would be relatively non-complicated. After submitting this on 02/13/2023 I will be hosting it on my personal
 website at forbes.danielstone.dev behind an nginx proxy forwarding calls to the local Gin Golang webserver running on a
@@ -27,6 +26,7 @@ would include setting up a systemd service that is set to always restart and poi
 version of the Gin Golang webserver.
 
 API Spec utilized for construction of this project:
+```
 openapi: 3.1.0
 info:
   title: API Team Take Home
@@ -445,3 +445,4 @@ components:
 tags:
 - name: Misc
   description: ''
+```
