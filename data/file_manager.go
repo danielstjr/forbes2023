@@ -2,6 +2,7 @@ package data
 
 import (
 	"bufio"
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
@@ -16,12 +17,13 @@ import (
  */
 var fileName = "dictionary.txt"
 
-var backupFileName = "backup.txt"
+//go:embed dictionary.txt
+var embeddedDictionary []byte
 
 // BuildDictionaryFromFile reads the contents of dictionary.txt and imports it into a Dictionary object
 func BuildDictionaryFromFile() (*Dictionary, bool) {
-	file, err := os.Open(fileName)
-	if err != nil {
+	file, ok := getDictionaryFile()
+	if !ok {
 		return nil, false
 	}
 	defer file.Close()
@@ -42,13 +44,9 @@ func BuildDictionaryFromFile() (*Dictionary, bool) {
 
 // SaveDictionaryToFile accepts a dictionary reference and then writes its data to the configured output file
 func SaveDictionaryToFile(dict *Dictionary) bool {
-	if !copyFile(backupFileName, fileName) {
-		return false
-	}
-
 	// Calling create on an existing file truncates it, and we want a fresh file here
-	file, err := os.Create(fileName)
-	if err != nil {
+	file, ok := getDictionaryFile()
+	if !ok {
 		return false
 	}
 	defer file.Close()
@@ -57,35 +55,35 @@ func SaveDictionaryToFile(dict *Dictionary) bool {
 	for _, entry := range dict.Entries {
 		_, err := file.WriteString(fmt.Sprintf("%v\n", entry))
 		if err != nil {
-			copyFile(fileName, backupFileName)
-			err = os.Remove(backupFileName)
 			return false
 		}
 	}
 
-	err = os.Remove(backupFileName)
-
 	return true
 }
 
-// copyFile copies the contents of the files in the original filepath to the destination filepath
-func copyFile(destination string, original string) bool {
-	originalFile, err := os.Open(original)
-	if err != nil {
-		return false
-	}
-	defer originalFile.Close()
-
-	destinationFile, err := os.Create(destination)
-	if err != nil {
-		return false
-	}
-	defer destinationFile.Close()
-
-	_, err = io.Copy(destinationFile, originalFile)
-	if err != nil {
-		return false
+// getDictionaryFile will pull embedded dictionary file into build for a starting point, then clone it into running
+// service. This would need to be replaced with a database or something persistent in production
+func getDictionaryFile() (*os.File, bool) {
+	if _, err := os.Stat(fileName); err == nil {
+		file, err := os.Open(fileName)
+		return file, err == nil
 	}
 
-	return true
+	file, createErr := os.Create(fileName)
+	if createErr != nil {
+		return nil, false
+	}
+
+	_, writeErr := file.Write(embeddedDictionary)
+	if writeErr != nil {
+		return nil, false
+	}
+
+	_, seekErr := file.Seek(0, io.SeekStart)
+	if seekErr != nil {
+		return nil, false
+	}
+
+	return file, true
 }
